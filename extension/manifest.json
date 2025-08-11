@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "TikTok Arabic Women Detector",
+  "version": "1.0.0",
+  "description": "Scan TikTok For You for videos whose descriptions contain Arabic letters and visually detect women/girls. Save matches to a list.",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "TikTok Scanner"
+  },
+  "permissions": ["storage", "scripting", "activeTab"],
+  "host_permissions": [
+    "https://www.tiktok.com/*",
+    "https://m.tiktok.com/*",
+    "https://cdn.jsdelivr.net/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://www.tiktok.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["vendor/face-api.min.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
