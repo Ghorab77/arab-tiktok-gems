@@ -43,12 +43,58 @@
 
   async function injectFaceApi() {
     if (STATE.faceApiReady) return true;
+    
+    // Check if face-api is already loaded globally
+    // @ts-ignore
+    if (window.faceapi) {
+      try {
+        // @ts-ignore
+        await window.faceapi.nets.tinyFaceDetector.loadFromUri(CONFIG.modelsURL);
+        // @ts-ignore
+        await window.faceapi.nets.ageGenderNet.loadFromUri(CONFIG.modelsURL);
+        STATE.faceApiReady = true;
+        console.log('[TT-Scanner] face-api already available, models loaded');
+        return true;
+      } catch (e) {
+        console.error('[TT-Scanner] Failed to load models from existing face-api', e);
+      }
+    }
+    
+    // Check if script already exists
+    const existingScript = document.querySelector('script[src*="face-api"]');
+    if (existingScript) {
+      console.log('[TT-Scanner] face-api script already exists, waiting for load');
+      return new Promise((resolve, reject) => {
+        const checkReady = async () => {
+          // @ts-ignore
+          if (window.faceapi) {
+            try {
+              // @ts-ignore
+              await window.faceapi.nets.tinyFaceDetector.loadFromUri(CONFIG.modelsURL);
+              // @ts-ignore
+              await window.faceapi.nets.ageGenderNet.loadFromUri(CONFIG.modelsURL);
+              STATE.faceApiReady = true;
+              console.log('[TT-Scanner] face-api models loaded from existing script');
+              resolve(true);
+            } catch (e) {
+              console.error('[TT-Scanner] Failed to load models', e);
+              reject(e);
+            }
+          } else {
+            setTimeout(checkReady, 100);
+          }
+        };
+        checkReady();
+      });
+    }
+    
     return new Promise((resolve, reject) => {
       try {
         const url = chrome.runtime.getURL('vendor/face-api.min.js');
         const s = document.createElement('script');
         s.src = url;
         s.async = true;
+        s.setAttribute('data-tt-scanner', 'true'); // Mark our script
         s.onload = async () => {
           try {
             // @ts-ignore
